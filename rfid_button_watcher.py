@@ -1,3 +1,4 @@
+import os
 import time
 import RPi.GPIO as GPIO
 from signal import signal, SIGINT
@@ -30,15 +31,23 @@ def main():
     sio.connect('http://crftk42.local:4567')
     print("Connected with SID ",sio.sid)
     print("Opening available serial ports... ")
-
-    for i in range(0,6):
-        ser_port = '/dev/ttyUSB'+str(i)
+    usb_devices_array=os.popen('ls /dev/ttyUSB*').read().split('\n')
+    usb_devices_array=list(filter(lambda e: len(e)>0, usb_devices_array))
+    i=0
+    for ser_port in usb_devices_array:
         if(os.path.exists(ser_port)):
             serials[i]=serial.Serial()
             serials[i].baudrate = 115200
             serials[i].port = ser_port
-            serials[i].open()
-            print("Port ",ser_port," opened.")
+            connected=False
+            while not connected:
+                try:
+                    serials[i].open()
+                    print("Port ",ser_port," opened.")
+                    connected=True
+                    i+=1
+                except:
+                    print("Error connecting ", ser_port," Retry...")
     while True:
         for i in range(0,6):
             if(serials[i]!= None and serials[i].in_waiting):
