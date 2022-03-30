@@ -7,15 +7,17 @@ import socketio
 import serial
 import os
 
+SIO_SERVER='http://10.0.0.241:4567'
+
 sio = socketio.Client()
 serials=[None]*6
 
 GPIO.setmode(GPIO.BCM)
-
-@sio.event
-def connect():
-    print("Connected to server. Registering.")
-    sio.emit('Register','cubeFaces')
+#
+# @sio.event
+# def connect():
+#     print("Connected to server. Registering.")
+#     sio.emit('Register','rfidpi')
 
 @sio.event
 def connect_error():
@@ -27,20 +29,26 @@ def disconnect():
 
 def main():
     print("Starting RFID serial watcher...")
-    #sio.connect('http://crftk42.local:4567')
-    sio.connect('http://crftk42.local:4567')
-    print("Connected with SID ",sio.sid)
+    try:
+       sio.connect(SIO_SERVER)
+    except:
+        print("SocketIO server not available")
+    if sio.connected:
+        sio.emit('Register',"RfidPi")
+        print("Connected with SID ",sio.sid)
     print("Opening available serial ports... ")
     usb_devices_array=os.popen('ls /dev/ttyUSB*').read().split('\n')
     usb_devices_array=list(filter(lambda e: len(e)>0, usb_devices_array))
     i=0
+    retries=0
     for ser_port in usb_devices_array:
         if(os.path.exists(ser_port)):
             serials[i]=serial.Serial()
             serials[i].baudrate = 115200
             serials[i].port = ser_port
             connected=False
-            while not connected:
+            while not connected and retries<10:
+                retries+=1
                 try:
                     serials[i].open()
                     print("Port ",ser_port," opened.")
@@ -48,6 +56,7 @@ def main():
                     i+=1
                 except:
                     print("Error connecting ", ser_port," Retry...")
+            retries=0
     while True:
         for i in range(0,6):
             if(serials[i]!= None and serials[i].in_waiting):
@@ -55,8 +64,10 @@ def main():
                 data=data.decode("utf-8").strip()
                 print("Received:",data)
                 msg={}
-                msg["data"]= data
-                sio.emit('Event',msg)
+                msg["controller_id"]= data.split(':')[0]
+                msg["value"]=data.split(':')[1]
+                if sio.connected:
+                    sio.emit('Command',msg)
         time.sleep(0.1)
 
 
