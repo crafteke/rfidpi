@@ -7,11 +7,12 @@ import socketio
 import serial
 import os
 
-SIO_SERVER='http://10.0.0.241:4567'
+SIO_SERVER='http://face6core.local:4567'
 
 sio = socketio.Client()
 serials=[None]*6
 
+correct_tags=["","","","","",""]
 GPIO.setmode(GPIO.BCM)
 #
 # @sio.event
@@ -34,7 +35,7 @@ def main():
     except:
         print("SocketIO server not available")
     if sio.connected:
-        sio.emit('Register',"RfidPi")
+        sio.emit('Register',"rfidPi")
         print("Connected with SID ",sio.sid)
     print("Opening available serial ports... ")
     usb_devices_array=os.popen('ls /dev/ttyUSB*').read().split('\n')
@@ -62,10 +63,17 @@ def main():
             if(serials[i]!= None and serials[i].in_waiting):
                 data=serials[i].readline()
                 data=data.decode("utf-8").strip()
-                print("Received:",data)
+                print("Received RFID:",data)
                 msg={}
-                msg["controller_id"]= data.split(':')[0]
-                msg["value"]=data.split(':')[1]
+                msg["controller_id"]= "rfid_"+data.split(':')[0]
+                rfid=data.split(':')[1]
+                if(rfid=="TAG_FOUND"):
+                    if rfid==correct_tags[i]:
+                        msg["value"]=1
+                    else:
+                        msg["value"]=0
+                elif(rfid=="TAG_GONE"):
+                    msg["value"]=-1
                 if sio.connected:
                     sio.emit('Command',msg)
         time.sleep(0.1)
