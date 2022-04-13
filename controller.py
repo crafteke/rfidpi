@@ -12,7 +12,7 @@ SIO_SERVER='http://face6core.local:4567'
 sio = socketio.Client()
 serials=[None]*6
 
-correct_tags=["","","","","",""]
+correct_tags=["0415911acdc826","0415917a9b5728","0415910a76d926","0415910a66c326","0415918a11ac28","0415911a2ce826"]
 GPIO.setmode(GPIO.BCM)
 #
 # @sio.event
@@ -65,17 +65,18 @@ def main():
                 data=data.decode("utf-8").strip()
                 print("Received RFID:",data)
                 msg={}
-                msg["controller_id"]= "rfid_"+data.split(':')[0]
-                rfid=data.split(':')[1]
-                if(rfid=="TAG_FOUND"):
-                    if rfid==correct_tags[i]:
+                rfid_id=data.split(':')[0]
+                if(rfid_id in ["0","1","2","3","4","5"]): #ignore firmware dumping from arduino
+                    msg["controller_id"]= "rfid_"+rfid_id
+                    rfid=data.split(':')[1]
+                    if(rfid=="TAG_GONE"):
+                        msg["value"]=-1
+                    elif rfid==correct_tags[i]:
                         msg["value"]=1
-                    else:
+                    elif(rfid=="TAG_FOUND"):
                         msg["value"]=0
-                elif(rfid=="TAG_GONE"):
-                    msg["value"]=-1
-                if sio.connected:
-                    sio.emit('Command',msg)
+                    if sio.connected:
+                        sio.emit('Command',msg)
         time.sleep(0.1)
 
 

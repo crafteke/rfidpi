@@ -16,4 +16,4 @@ dep:
 	arduino-cli core install arduino:avr
 
 lib:
-	arduino-cli lib install "MFRC522" "MPR121"
+	arduino-cli lib install "MFRC522"

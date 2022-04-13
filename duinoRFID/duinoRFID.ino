@@ -6,7 +6,7 @@
 #define SS_PIN          3          // Configurable, see typical pin layout above
 
 
-#define READER_ID       5
+#define READER_ID       04242
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);  // Create MFRC522 instance
 
@@ -58,7 +58,7 @@ void loop() {
 
  // rising edge
  if (rfid_tag_present && !rfid_tag_present_prev){
-   sendData("TAG_FOUND");
+   //sendData("TAG_FOUND"); useless: just send tag and we know there was something
    sendTag();
  }
 
