@@ -82,8 +82,8 @@ def main():
 
     GPIO.setup(VALIDATE_BUTTON, GPIO.IN,pull_up_down=GPIO.PUD_UP)
     GPIO.setup(START_BUILDING,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(VALIDATE_BUTTON, GPIO.FALLING, callback=push_validate, bouncetime=200)
-    GPIO.add_event_detect(START_BUILDING, GPIO.FALLING, callback=push_build,bouncetime=200)
+    GPIO.add_event_detect(VALIDATE_BUTTON, GPIO.FALLING, callback=push_validate, bouncetime=300)
+    GPIO.add_event_detect(START_BUILDING, GPIO.FALLING, callback=push_build,bouncetime=300)
     while True:
         for i in range(0,6):
             if(serials[i]!= None and serials[i].in_waiting):

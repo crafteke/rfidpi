@@ -96,9 +96,7 @@ void loop() {
  if (!rfid_tag_present && rfid_tag_present_prev){
     sendData("TAG_GONE");
  }
- if(refresh_request){ //refresh was asked but no rfid on reader
-   refresh_request=false;
- }
+
 }
 
 void sendTag(){
